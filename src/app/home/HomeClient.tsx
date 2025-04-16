@@ -4,10 +4,12 @@ import { memo, useCallback, useEffect, useState } from "react"
 import { Advocate } from "../types/advocates"
 import { logger } from "@/lib/logger"
 import { API_ADVOCATES } from "../api/advocates/urls"
-import { AdvocatesTable } from "../components/AdvocatesTable"
+import { AdvocatesTable } from "../components/AdvocatesTable/AdvocatesTable"
 import { getApiUrl } from "../api/apiUtils/getApiUrl"
 import { getAdvocates } from "../api/advocates/utils"
 import { useDebounce } from "use-debounce"
+import { RESET_SEARCH, SEARCHING_FOR, SOLACE_ADVOCATES } from "./constants"
+import { usePrevious } from "../hooks/usePrevious"
 
 const HOME_PAGE_TAG = "Home"
 const DEBOUNCE_INTERVAL = 400
@@ -21,6 +23,7 @@ function HomeClient({ initialAdvocates }: HomeClientProps) {
   const [advocates, setAdvocates] = useState<Advocate[]>(initialAdvocates)
   const [searchQuery, setSearchQuery] = useState<string>("")
   const [debouncedSearchTerm] = useDebounce(searchQuery, DEBOUNCE_INTERVAL)
+  const previousSearchTerm = usePrevious(debouncedSearchTerm)
 
   const fetchAdvocatesAsync = useCallback(async (query: string = "") => {
     const advocatesUrl = getApiUrl(API_ADVOCATES, {
@@ -37,8 +40,15 @@ function HomeClient({ initialAdvocates }: HomeClientProps) {
     if (debouncedSearchTerm.length >= MIN_SEARCH_LENGTH) {
       logger({ tag: HOME_PAGE_TAG, message: "fetching filtered advocates..." })
       fetchAdvocatesAsync(debouncedSearchTerm)
+    } else if (
+      previousSearchTerm &&
+      previousSearchTerm.length >= MIN_SEARCH_LENGTH &&
+      debouncedSearchTerm.length === 0
+    ) {
+      logger({ tag: HOME_PAGE_TAG, message: "clearing search..." })
+      fetchAdvocatesAsync()
     }
-  }, [debouncedSearchTerm])
+  }, [debouncedSearchTerm, previousSearchTerm, fetchAdvocatesAsync])
 
   const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -54,19 +64,25 @@ function HomeClient({ initialAdvocates }: HomeClientProps) {
 
   return (
     <main className="m-6">
-      <h1>Solace Advocates</h1>
-      <br />
-      <br />
-      <div>
-        <p>Search</p>
+      <h1 className="text-4xl">{SOLACE_ADVOCATES}</h1>
+      <div className="flex my-6 gap-2 items-center w-full">
+        <input
+          className="placeholder-gray-500 border p-3 rounded-md"
+          placeholder="Search"
+          value={searchQuery}
+          onChange={onChange}
+        />
         <p>
-          Searching for: <span>{searchQuery}</span>
+          {SEARCHING_FOR}
+          <span>{searchQuery}</span>
         </p>
-        <input className="border border-black" onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
+        <button
+          className="bg-transparent hover:bg-gray-600 text-black font-semibold hover:text-white py-2 px-4 border border-black hover:border-transparent rounded ml-auto"
+          onClick={onClick}
+        >
+          {RESET_SEARCH}
+        </button>
       </div>
-      <br />
-      <br />
       <AdvocatesTable advocates={advocates} />
     </main>
   )
