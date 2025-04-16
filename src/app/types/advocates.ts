@@ -1,4 +1,5 @@
 export type Advocate = {
+  id: number
   firstName: string
   lastName: string
   city: string
@@ -6,4 +7,5 @@ export type Advocate = {
   specialties: string[]
   yearsOfExperience: number
   phoneNumber: number
+  createdAt: string
 }
