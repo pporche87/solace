@@ -2,7 +2,7 @@ import db from "@/db"
 import { advocates } from "@/db/schema"
 import { sql } from "drizzle-orm"
 import { NextRequest, NextResponse } from "next/server"
-import { generateSearchWhereClause } from "./utils"
+import { generateAdvocatesWhereClause } from "./utils"
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const offset = Number(searchParams.get("offset")) || 0
   const searchQuery = searchParams.get("searchQuery")?.toLowerCase() ?? ""
 
-  const whereClause = generateSearchWhereClause(searchQuery)
+  const whereClause = generateAdvocatesWhereClause(searchQuery)
 
   const paginatedAdvocates = await db
     .select()

@@ -1,7 +1,8 @@
 import { advocates } from "@/db/schema"
 import { ilike, or, sql } from "drizzle-orm"
+import { apiFetch } from "../apiUtils/apiFetch"
 
-export const generateSearchWhereClause = (searchQuery: string | null) => {
+export const generateAdvocatesWhereClause = (searchQuery: string | null) => {
   return searchQuery
     ? or(
         ilike(advocates.firstName, `%${searchQuery}%`),
@@ -16,4 +17,9 @@ export const generateSearchWhereClause = (searchQuery: string | null) => {
         }`
       )
     : undefined
+}
+
+export const getAdvocates = async (url: string) => {
+  const response = await apiFetch(url)
+  return response
 }
